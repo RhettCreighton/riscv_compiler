@@ -1,6 +1,7 @@
 #include "riscv_compiler.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 // RISC-V Upper Immediate Instructions: LUI and AUIPC
 // These are essential for loading large constants and PC-relative addressing
@@ -229,3 +230,10 @@ void test_upper_immediate_instructions(void) {
     printf("\n🎉 Upper immediate instructions implemented!\n");
     printf("RV32I is now ~95%% complete - just system calls remaining.\n");
 }
+
+#ifdef TEST_MAIN
+int main(void) {
+    test_upper_immediate_instructions();
+    return 0;
+}
+#endif

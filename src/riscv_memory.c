@@ -123,34 +123,11 @@ void build_conditional_update(riscv_circuit_t* circuit,
     }
 }
 
-// Simplified SHA3-256 circuit builder
-// In reality, this would be ~192K gates like in circuit_sha3
-// For now, we'll create a placeholder that XORs inputs
+// Forward declaration - implemented in sha3_circuit.c
+// Real SHA3-256 implementation with ~192K gates for cryptographic security
 void build_sha3_256_circuit(riscv_circuit_t* circuit,
-                           uint32_t* input_bits,
-                           uint32_t* output_bits) {
-    // Placeholder: Just XOR groups of input bits
-    // Real implementation would use the full SHA3 circuit
-    
-    printf("Note: Using simplified hash for demo (real SHA3 would be ~192K gates)\n");
-    
-    // Simple mixing function for demonstration
-    for (int i = 0; i < 256; i++) {
-        uint32_t mixed = input_bits[i];
-        
-        // Mix with other bits
-        int j = (i + 128) % 512;
-        int k = (i + 256) % 512;
-        
-        uint32_t temp1 = riscv_circuit_allocate_wire(circuit);
-        uint32_t temp2 = riscv_circuit_allocate_wire(circuit);
-        
-        riscv_circuit_add_gate(circuit, mixed, input_bits[j], temp1, GATE_XOR);
-        riscv_circuit_add_gate(circuit, temp1, input_bits[k], temp2, GATE_AND);
-        
-        output_bits[i] = temp2;
-    }
-}
+                           uint32_t* input_bits,  // 512 bits input
+                           uint32_t* output_bits); // 256 bits output
 
 // Build memory access circuit
 void riscv_memory_access(riscv_memory_t* memory, 

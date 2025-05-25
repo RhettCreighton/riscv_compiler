@@ -1,6 +1,7 @@
 #include "riscv_compiler.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 // RISC-V System Instructions: ECALL and EBREAK
 // These handle environment calls and debugging breakpoints
@@ -300,3 +301,10 @@ void test_system_instructions(void) {
     printf("- Add GPU acceleration support\n");
     printf("- Implement recursive proof composition\n");
 }
+
+#ifdef TEST_MAIN
+int main(void) {
+    test_system_instructions();
+    return 0;
+}
+#endif

@@ -11,9 +11,15 @@
 #define MAX_INPUT_BITS (MAX_INPUT_SIZE_MB * 1024 * 1024 * 8)
 #define MAX_OUTPUT_BITS (MAX_OUTPUT_SIZE_MB * 1024 * 1024 * 8)
 
-// Reserved input bit indices
-#define CONSTANT_0_WIRE 0  // Input bit 0: always 0
-#define CONSTANT_1_WIRE 1  // Input bit 1: always 1
+// Circuit Input Convention: ALL circuits follow this standard layout
+// Input bit 0: ALWAYS 0 (constant false) - available to every gate as CONSTANT_0_WIRE
+// Input bit 1: ALWAYS 1 (constant true)  - available to every gate as CONSTANT_1_WIRE  
+// Input bits 2+: User data (PC, registers, memory, etc.)
+//
+// This standardized approach ensures every circuit can easily access constants
+// without needing special constant generation gates.
+#define CONSTANT_0_WIRE 0  // Input bit 0: always 0 by circuit convention
+#define CONSTANT_1_WIRE 1  // Input bit 1: always 1 by circuit convention
 
 // State encoding layout in input bits
 #define PC_START_BIT 2
@@ -128,6 +134,10 @@ typedef struct {
     riscv_state_t* initial_state;  // Input state
     riscv_state_t* final_state;    // Output state
     
+    // Register wire tracking
+    uint32_t* reg_wires[32];       // Wire IDs for each register's bits
+    uint32_t* pc_wires;            // Wire IDs for PC bits
+    
     // Memory subsystem
     struct riscv_memory_t* memory;  // Forward declaration
 } riscv_compiler_t;
@@ -192,12 +202,14 @@ int compile_multiply_instruction(riscv_compiler_t* compiler, uint32_t instructio
 int compile_jump_instruction(riscv_compiler_t* compiler, uint32_t instruction);
 int compile_upper_immediate_instruction(riscv_compiler_t* compiler, uint32_t instruction);
 int compile_system_instruction(riscv_compiler_t* compiler, uint32_t instruction);
+int compile_divide_instruction(riscv_compiler_t* compiler, uint32_t instruction);
 
 // Test functions
 void test_multiplication_instructions(void);
 void test_jump_instructions(void);
 void test_upper_immediate_instructions(void);
 void test_system_instructions(void);
+void test_division_instructions(void);
 
 // Helper to compile ADDI
 void compile_addi(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, int32_t imm);

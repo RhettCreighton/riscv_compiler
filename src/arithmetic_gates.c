@@ -126,10 +126,27 @@ uint32_t build_shifter(riscv_circuit_t* circuit, uint32_t* value_bits, uint32_t*
     return 0;  // No carry for shifts
 }
 
-// Build a multiplier using shift-and-add algorithm
-// This is expensive in gates but works
+// Forward declaration for Booth multiplier
+void build_booth_multiplier(riscv_circuit_t* circuit,
+                           uint32_t* multiplicand, uint32_t* multiplier,
+                           uint32_t* product, size_t bits);
+
+// Configuration flag to enable Booth optimization
+#ifndef USE_BOOTH_MULTIPLIER
+#define USE_BOOTH_MULTIPLIER 1
+#endif
+
+// Build a multiplier - uses Booth's algorithm if enabled
 uint32_t* build_multiplier(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits,
                            size_t num_bits) {
+    if (USE_BOOTH_MULTIPLIER) {
+        // Use optimized Booth multiplier
+        uint32_t* result = riscv_circuit_allocate_wire_array(circuit, 2 * num_bits);
+        build_booth_multiplier(circuit, a_bits, b_bits, result, num_bits);
+        return result;
+    }
+    
+    // Fall back to shift-and-add algorithm
     // Result is 2*num_bits wide
     uint32_t* result = riscv_circuit_allocate_wire_array(circuit, 2 * num_bits);
     

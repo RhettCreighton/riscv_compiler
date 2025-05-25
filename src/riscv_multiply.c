@@ -1,6 +1,7 @@
 #include "riscv_compiler.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 // RISC-V M Extension: Integer Multiplication and Division
 // We implement MUL, MULH, MULHU, MULHSU instructions
@@ -265,3 +266,10 @@ void test_multiplication_instructions(void) {
     
     riscv_compiler_destroy(compiler);
 }
+
+#ifdef TEST_MAIN
+int main(void) {
+    test_multiplication_instructions();
+    return 0;
+}
+#endif

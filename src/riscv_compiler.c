@@ -41,16 +41,51 @@ riscv_compiler_t* riscv_compiler_create(void) {
         return NULL;
     }
     
-    // Initialize wire counter (0 is reserved for constant 0)
-    compiler->circuit->next_wire_id = 1;
+    // Initialize wire counter - wires 0,1 are reserved for constants by convention
+    // All circuits use this same standard: input bit 0=constant 0, input bit 1=constant 1
+    compiler->circuit->next_wire_id = 2;  // Start allocating from wire 2+
     
-    // Allocate constant wires
-    uint32_t zero_wire = riscv_circuit_allocate_wire(compiler->circuit);  // Wire 1: constant 0
-    uint32_t one_wire = riscv_circuit_allocate_wire(compiler->circuit);   // Wire 2: constant 1
+    // Constants are handled by circuit input convention:
+    // - Every circuit's input bit 0 = constant 0 (false)  
+    // - Every circuit's input bit 1 = constant 1 (true)
+    // No gate generation needed - these are inputs by definition
     
-    // Create constant 1 using XOR (self XOR gives 0, then XOR with 0 gives 1)
-    // Actually, we need a better approach - let's assume wire 1 is always 0 and wire 2 is always 1
-    // This will be handled by the circuit initialization
+    // Initialize register wire arrays
+    for (int i = 0; i < 32; i++) {
+        compiler->reg_wires[i] = calloc(32, sizeof(uint32_t));
+        if (!compiler->reg_wires[i]) {
+            // Clean up on failure
+            for (int j = 0; j < i; j++) {
+                free(compiler->reg_wires[j]);
+            }
+            free(compiler->circuit->gates);
+            free(compiler->circuit);
+            free(compiler);
+            return NULL;
+        }
+        
+        // Initialize register wires to point to input bits
+        for (int bit = 0; bit < 32; bit++) {
+            compiler->reg_wires[i][bit] = get_register_wire(i, bit);
+        }
+    }
+    
+    // Initialize PC wire array
+    compiler->pc_wires = calloc(32, sizeof(uint32_t));
+    if (!compiler->pc_wires) {
+        for (int i = 0; i < 32; i++) {
+            free(compiler->reg_wires[i]);
+        }
+        free(compiler->circuit->gates);
+        free(compiler->circuit);
+        free(compiler);
+        return NULL;
+    }
+    
+    // Initialize PC wires to point to input bits
+    for (int bit = 0; bit < 32; bit++) {
+        compiler->pc_wires[bit] = get_pc_wire(bit);
+    }
     
     return compiler;
 }
@@ -60,15 +95,28 @@ void riscv_compiler_destroy(riscv_compiler_t* compiler) {
     
     if (compiler->circuit) {
         free(compiler->circuit->gates);
-        free(compiler->circuit->input_wires);
-        free(compiler->circuit->output_wires);
+        free(compiler->circuit->input_bits);
+        free(compiler->circuit->output_bits);
         free(compiler->circuit);
     }
     
-    if (compiler->state) {
-        free(compiler->state->memory);
-        free(compiler->state);
+    if (compiler->initial_state) {
+        free(compiler->initial_state->memory);
+        free(compiler->initial_state);
     }
+    
+    if (compiler->final_state) {
+        free(compiler->final_state->memory);
+        free(compiler->final_state);
+    }
+    
+    // Free register wire arrays
+    for (int i = 0; i < 32; i++) {
+        free(compiler->reg_wires[i]);
+    }
+    
+    // Free PC wire array
+    free(compiler->pc_wires);
     
     free(compiler);
 }
@@ -286,80 +334,9 @@ static void build_full_adder(riscv_circuit_t* circuit, uint32_t a, uint32_t b, u
 // Kogge-Stone parallel prefix adder - much more efficient than ripple carry
 uint32_t build_kogge_stone_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
                                  uint32_t* sum_bits, size_t num_bits) {
-    // Generate and Propagate signals
-    uint32_t* g = riscv_circuit_allocate_wire_array(circuit, num_bits);  // Generate: a[i] AND b[i]
-    uint32_t* p = riscv_circuit_allocate_wire_array(circuit, num_bits);  // Propagate: a[i] XOR b[i]
-    
-    // Initial generate and propagate
-    for (size_t i = 0; i < num_bits; i++) {
-        riscv_circuit_add_gate(circuit, a_bits[i], b_bits[i], g[i], GATE_AND);  // g[i] = a[i] & b[i]
-        riscv_circuit_add_gate(circuit, a_bits[i], b_bits[i], p[i], GATE_XOR);  // p[i] = a[i] ^ b[i]
-    }
-    
-    // Kogge-Stone prefix computation
-    // Number of levels = log2(num_bits)
-    size_t levels = 0;
-    size_t temp = num_bits - 1;
-    while (temp > 0) {
-        temp >>= 1;
-        levels++;
-    }
-    
-    // For each level in the prefix tree
-    for (size_t level = 0; level < levels; level++) {
-        size_t step = 1ULL << level;  // 1, 2, 4, 8, 16...
-        
-        uint32_t* new_g = riscv_circuit_allocate_wire_array(circuit, num_bits);
-        uint32_t* new_p = riscv_circuit_allocate_wire_array(circuit, num_bits);
-        
-        for (size_t i = 0; i < num_bits; i++) {
-            if (i >= step) {
-                // new_g[i] = g[i] | (p[i] & g[i-step])
-                // new_p[i] = p[i] & p[i-step]
-                
-                // p[i] & g[i-step]
-                uint32_t p_and_g_prev = riscv_circuit_allocate_wire(circuit);
-                riscv_circuit_add_gate(circuit, p[i], g[i - step], p_and_g_prev, GATE_AND);
-                
-                // g[i] | (p[i] & g[i-step]) using OR = (a XOR b) XOR (a AND b)
-                uint32_t g_xor_temp = riscv_circuit_allocate_wire(circuit);
-                uint32_t g_and_temp = riscv_circuit_allocate_wire(circuit);
-                riscv_circuit_add_gate(circuit, g[i], p_and_g_prev, g_xor_temp, GATE_XOR);
-                riscv_circuit_add_gate(circuit, g[i], p_and_g_prev, g_and_temp, GATE_AND);
-                riscv_circuit_add_gate(circuit, g_xor_temp, g_and_temp, new_g[i], GATE_XOR);
-                
-                // p[i] & p[i-step]
-                riscv_circuit_add_gate(circuit, p[i], p[i - step], new_p[i], GATE_AND);
-            } else {
-                // Copy unchanged
-                new_g[i] = g[i];
-                new_p[i] = p[i];
-            }
-        }
-        
-        // Update for next level
-        free(g);
-        free(p);
-        g = new_g;
-        p = new_p;
-    }
-    
-    // Compute final sum bits
-    // sum[0] = p[0] (since no carry into bit 0)
-    sum_bits[0] = p[0];
-    
-    // sum[i] = p[i] XOR g[i-1] for i > 0
-    for (size_t i = 1; i < num_bits; i++) {
-        riscv_circuit_add_gate(circuit, p[i], g[i - 1], sum_bits[i], GATE_XOR);
-    }
-    
-    // Return final carry out
-    uint32_t carry_out = g[num_bits - 1];
-    
-    free(g);
-    free(p);
-    
-    return carry_out;
+    // For now, use ripple-carry as it's more gate-efficient for the baseline
+    // TODO: Implement optimized Kogge-Stone that doesn't use OR gates
+    return build_ripple_carry_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
 }
 
 // Keep old ripple-carry adder for comparison/fallback
@@ -552,6 +529,31 @@ int riscv_compile_instruction(riscv_compiler_t* compiler, uint32_t instruction) 
         return 0;
     }
     
+    // Try jump instructions
+    if (compile_jump_instruction(compiler, instruction) == 0) {
+        return 0;
+    }
+    
+    // Try upper immediate instructions
+    if (compile_upper_immediate_instruction(compiler, instruction) == 0) {
+        return 0;
+    }
+    
+    // Try multiply instructions
+    if (compile_multiply_instruction(compiler, instruction) == 0) {
+        return 0;
+    }
+    
+    // Try system instructions
+    if (compile_system_instruction(compiler, instruction) == 0) {
+        return 0;
+    }
+    
+    // Try division instructions
+    if (compile_divide_instruction(compiler, instruction) == 0) {
+        return 0;
+    }
+    
     // Try memory instructions (if memory subsystem is available)
     if (compiler->memory && compile_memory_instruction(compiler, compiler->memory, instruction) == 0) {
         return 0;
@@ -589,7 +591,7 @@ int riscv_compile_instruction(riscv_compiler_t* compiler, uint32_t instruction) 
             }
             break;
             
-        // Branches and memory ops are handled above
+        // Branches, jumps, memory ops are handled above
         default:
             fprintf(stderr, "Unsupported opcode: 0x%x\n", opcode);
             return -1;

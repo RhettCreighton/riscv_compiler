@@ -67,14 +67,13 @@ static void increment_pc_by_4(riscv_circuit_t* circuit,
 // Format: jal rd, imm
 // Operation: rd = PC + 4; PC = PC + imm
 static int compile_jal(riscv_compiler_t* compiler, uint32_t rd, int32_t immediate) {
-    // Get current PC wires
-    uint32_t* pc_wires = malloc(32 * sizeof(uint32_t));
+    // Get current PC wires from compiler
+    uint32_t* pc_wires = compiler->pc_wires;
     uint32_t* rd_wires = malloc(32 * sizeof(uint32_t));
     uint32_t* next_pc_wires = malloc(32 * sizeof(uint32_t));
     uint32_t* target_pc_wires = malloc(32 * sizeof(uint32_t));
     
     for (int i = 0; i < 32; i++) {
-        pc_wires[i] = get_pc_wire(i);
         rd_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
         next_pc_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
         target_pc_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
@@ -84,17 +83,16 @@ static int compile_jal(riscv_compiler_t* compiler, uint32_t rd, int32_t immediat
     if (rd != 0) {  // Don't write to x0
         increment_pc_by_4(compiler->circuit, pc_wires, rd_wires);
         
-        // In a full implementation, this would update the register file
-        // For now, we just generate the computation circuit
+        // Update the register wire mapping
+        memcpy(compiler->reg_wires[rd], rd_wires, 32 * sizeof(uint32_t));
     }
     
     // Step 2: PC = PC + immediate (jump target)
     add_immediate_to_pc(compiler->circuit, pc_wires, immediate, target_pc_wires);
     
-    // In a full implementation, this would update the PC
-    // For circuit generation, we just compute the target
+    // Update PC wires to point to new PC value
+    memcpy(compiler->pc_wires, target_pc_wires, 32 * sizeof(uint32_t));
     
-    free(pc_wires);
     free(rd_wires);
     free(next_pc_wires);
     free(target_pc_wires);
@@ -107,15 +105,13 @@ static int compile_jal(riscv_compiler_t* compiler, uint32_t rd, int32_t immediat
 // Operation: rd = PC + 4; PC = (rs1 + imm) & ~1
 static int compile_jalr(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, int32_t immediate) {
     // Get wires
-    uint32_t* pc_wires = malloc(32 * sizeof(uint32_t));
-    uint32_t* rs1_wires = malloc(32 * sizeof(uint32_t));
+    uint32_t* pc_wires = compiler->pc_wires;
+    uint32_t* rs1_wires = compiler->reg_wires[rs1];
     uint32_t* rd_wires = malloc(32 * sizeof(uint32_t));
     uint32_t* target_wires = malloc(32 * sizeof(uint32_t));
     uint32_t* temp_wires = malloc(32 * sizeof(uint32_t));
     
     for (int i = 0; i < 32; i++) {
-        pc_wires[i] = get_pc_wire(i);
-        rs1_wires[i] = get_register_wire(rs1, i);
         rd_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
         target_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
         temp_wires[i] = riscv_circuit_allocate_wire(compiler->circuit);
@@ -124,6 +120,9 @@ static int compile_jalr(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, i
     // Step 1: rd = PC + 4 (return address)
     if (rd != 0) {  // Don't write to x0
         increment_pc_by_4(compiler->circuit, pc_wires, rd_wires);
+        
+        // Update the register wire mapping
+        memcpy(compiler->reg_wires[rd], rd_wires, 32 * sizeof(uint32_t));
     }
     
     // Step 2: temp = rs1 + immediate
@@ -140,8 +139,9 @@ static int compile_jalr(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, i
         }
     }
     
-    free(pc_wires);
-    free(rs1_wires);
+    // Update PC wires to point to new PC value
+    memcpy(compiler->pc_wires, target_wires, 32 * sizeof(uint32_t));
+    
     free(rd_wires);
     free(target_wires);
     free(temp_wires);
@@ -289,3 +289,10 @@ void test_jump_instructions(void) {
     printf("\n🎉 Jump instruction implementation complete!\n");
     printf("Ready for function calls and advanced control flow.\n");
 }
+
+#ifdef TEST_MAIN
+int main(void) {
+    test_jump_instructions();
+    return 0;
+}
+#endif
