@@ -303,9 +303,7 @@ void build_booth_multiplier(riscv_circuit_t* circuit,
         product[i] = current_level[0][i];
     }
     
-    if (current_level != partial_products) {
-        free(current_level);
-    }
+    // Note: accumulator points to circuit-allocated memory, don't free
     free(partial_products);
 }
 

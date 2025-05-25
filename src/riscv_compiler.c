@@ -123,13 +123,34 @@ void riscv_compiler_destroy(riscv_compiler_t* compiler) {
 
 // Create circuit with specified input/output sizes and bounds checking
 riscv_circuit_t* riscv_circuit_create(size_t num_inputs, size_t num_outputs) {
-    // Bounds checking
+    // Bounds checking with helpful error messages
     if (num_inputs > MAX_INPUT_BITS) {
-        fprintf(stderr, "Input size %zu exceeds maximum %d bits\n", num_inputs, MAX_INPUT_BITS);
+        fprintf(stderr, "\n❌ ERROR: Circuit input size exceeds zkVM limits\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Requested input:  %zu bits (%.2f MB)\n", 
+                num_inputs, num_inputs / (8.0 * 1024 * 1024));
+        fprintf(stderr, "Maximum allowed:  %d bits (%.2f MB)\n", 
+                MAX_INPUT_BITS, MAX_INPUT_BITS / (8.0 * 1024 * 1024));
+        fprintf(stderr, "\n");
+        fprintf(stderr, "This happens when your program needs too much memory.\n");
+        fprintf(stderr, "The zkVM has a hard limit of 10MB for input data.\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "To fix this:\n");
+        fprintf(stderr, "  1. Reduce memory allocation in your program\n");
+        fprintf(stderr, "  2. Process data in smaller chunks\n");
+        fprintf(stderr, "  3. Use the memory_aware_example for guidance\n");
         return NULL;
     }
     if (num_outputs > MAX_OUTPUT_BITS) {
-        fprintf(stderr, "Output size %zu exceeds maximum %d bits\n", num_outputs, MAX_OUTPUT_BITS);
+        fprintf(stderr, "\n❌ ERROR: Circuit output size exceeds zkVM limits\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Requested output: %zu bits (%.2f MB)\n", 
+                num_outputs, num_outputs / (8.0 * 1024 * 1024));
+        fprintf(stderr, "Maximum allowed:  %d bits (%.2f MB)\n", 
+                MAX_OUTPUT_BITS, MAX_OUTPUT_BITS / (8.0 * 1024 * 1024));
+        fprintf(stderr, "\n");
+        fprintf(stderr, "The zkVM output is limited to 10MB to ensure\n");
+        fprintf(stderr, "efficient proof generation and verification.\n");
         return NULL;
     }
     
@@ -331,12 +352,16 @@ static void build_full_adder(riscv_circuit_t* circuit, uint32_t a, uint32_t b, u
     riscv_circuit_add_gate(circuit, or_inputs_xor, or_inputs_and, *cout, GATE_XOR);
 }
 
+// Forward declaration for optimized implementation
+uint32_t build_sparse_kogge_stone_adder(riscv_circuit_t* circuit,
+                                       uint32_t* a_bits, uint32_t* b_bits,
+                                       uint32_t* sum_bits, size_t num_bits);
+
 // Kogge-Stone parallel prefix adder - much more efficient than ripple carry
 uint32_t build_kogge_stone_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
                                  uint32_t* sum_bits, size_t num_bits) {
-    // For now, use ripple-carry as it's more gate-efficient for the baseline
-    // TODO: Implement optimized Kogge-Stone that doesn't use OR gates
-    return build_ripple_carry_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
+    // Use sparse Kogge-Stone for optimal gate/depth tradeoff
+    return build_sparse_kogge_stone_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
 }
 
 // Keep old ripple-carry adder for comparison/fallback

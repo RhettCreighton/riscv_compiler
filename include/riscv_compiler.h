@@ -217,4 +217,52 @@ void compile_addi(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, int32_t
 // Circuit format converter
 int riscv_circuit_to_gate_format(const riscv_circuit_t* circuit, const char* filename);
 
+// Optimized arithmetic operations
+uint32_t build_kogge_stone_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
+                                 uint32_t* sum_bits, size_t num_bits);
+uint32_t build_sparse_kogge_stone_adder(riscv_circuit_t* circuit,
+                                       uint32_t* a_bits, uint32_t* b_bits,
+                                       uint32_t* sum_bits, size_t num_bits);
+uint32_t build_ripple_carry_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits,
+                                  uint32_t* sum_bits, size_t num_bits);
+void build_booth_multiplier(riscv_circuit_t* circuit,
+                           uint32_t* multiplicand, uint32_t* multiplier,
+                           uint32_t* product, size_t bits);
+void build_booth_multiplier_optimized(riscv_circuit_t* circuit,
+                                     uint32_t* multiplicand, uint32_t* multiplier,
+                                     uint32_t* product, size_t bits);
+
+// Gate caching and deduplication
+void deduplicate_gates(riscv_circuit_t* circuit);
+void gate_cache_print_stats(void);
+
+// Memory constraint management
+typedef struct {
+    size_t code_size;
+    size_t data_size;
+    size_t bss_size;
+    size_t heap_size;
+    size_t stack_size;
+    size_t total_memory;
+    uint32_t code_start;
+    uint32_t code_end;
+    uint32_t data_start;
+    uint32_t data_end;
+    uint32_t heap_start;
+    uint32_t heap_end;
+    uint32_t stack_start;
+    uint32_t stack_end;
+} memory_analysis_t;
+
+memory_analysis_t* analyze_memory_requirements(const riscv_program_t* program);
+bool check_memory_constraints(const memory_analysis_t* analysis, char* error_msg, size_t error_msg_size);
+void print_memory_analysis(const memory_analysis_t* analysis);
+void suggest_memory_optimizations(const memory_analysis_t* analysis);
+riscv_compiler_t* riscv_compiler_create_constrained(size_t max_memory_bytes);
+size_t calculate_riscv_input_size_with_memory(size_t memory_bytes);
+size_t calculate_riscv_output_size_with_memory(size_t memory_bytes);
+int load_program_with_constraints(const char* elf_file, 
+                                  riscv_compiler_t** compiler_out,
+                                  riscv_program_t** program_out);
+
 #endif // RISCV_COMPILER_H

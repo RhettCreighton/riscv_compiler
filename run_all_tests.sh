@@ -36,7 +36,7 @@ run_test() {
 # Build tests first
 echo "Building tests..."
 cd build
-make -j$(nproc) test_arithmetic test_differential test_jumps test_multiply test_upper_immediate test_system test_divide > /dev/null 2>&1
+make -j$(nproc) test_arithmetic test_differential test_differential_programs test_jumps test_multiply test_upper_immediate test_system test_divide > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     echo "Build failed!"
@@ -58,6 +58,7 @@ echo
 echo "=== Comprehensive Test Suites ==="
 run_test "Arithmetic Unit Tests" "test_arithmetic"
 run_test "Differential Tests" "test_differential"
+run_test "Differential Program Tests" "test_differential_programs"
 
 # Summary
 echo
