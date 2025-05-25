@@ -1,4 +1,5 @@
 #include "riscv_compiler.h"
+#include "riscv_elf_loader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,25 +14,7 @@
 // Maximum memory allowed given 10MB total limit
 #define MAX_MEMORY_BYTES (MAX_INPUT_BITS / 8 - STATE_OVERHEAD_BYTES)  // ~10,485,627 bytes
 
-// Memory usage analysis
-typedef struct {
-    size_t code_size;        // .text section
-    size_t data_size;        // .data section  
-    size_t bss_size;         // .bss section
-    size_t heap_size;        // Heap allocation
-    size_t stack_size;       // Stack allocation
-    size_t total_memory;     // Total memory needed
-    
-    // Memory layout
-    uint32_t code_start;
-    uint32_t code_end;
-    uint32_t data_start;
-    uint32_t data_end;
-    uint32_t heap_start;
-    uint32_t heap_end;
-    uint32_t stack_start;
-    uint32_t stack_end;
-} memory_analysis_t;
+// Memory usage analysis - defined in riscv_compiler.h
 
 // Analyze memory requirements of a program
 memory_analysis_t* analyze_memory_requirements(const riscv_program_t* program) {

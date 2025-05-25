@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "riscv_elf_loader.h"
 
 // Bounded circuit model constants
 #define MAX_INPUT_SIZE_MB 10

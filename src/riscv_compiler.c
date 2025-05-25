@@ -357,12 +357,6 @@ uint32_t build_sparse_kogge_stone_adder(riscv_circuit_t* circuit,
                                        uint32_t* a_bits, uint32_t* b_bits,
                                        uint32_t* sum_bits, size_t num_bits);
 
-// Kogge-Stone parallel prefix adder - much more efficient than ripple carry
-uint32_t build_kogge_stone_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
-                                 uint32_t* sum_bits, size_t num_bits) {
-    // Use sparse Kogge-Stone for optimal gate/depth tradeoff
-    return build_sparse_kogge_stone_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
-}
 
 // Keep old ripple-carry adder for comparison/fallback
 uint32_t build_ripple_carry_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
@@ -378,11 +372,11 @@ uint32_t build_ripple_carry_adder(riscv_circuit_t* circuit, uint32_t* a_bits, ui
     return carry;  // Return final carry out
 }
 
-// Main adder function - uses Kogge-Stone by default
+// Main adder function - uses sparse Kogge-Stone by default for better gate/depth tradeoff
 uint32_t build_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
                      uint32_t* sum_bits, size_t num_bits) {
-    // Use Kogge-Stone for better parallelism and fewer gate delays
-    return build_kogge_stone_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
+    // Use sparse Kogge-Stone for optimal balance of gates and depth
+    return build_sparse_kogge_stone_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
 }
 
 uint32_t build_subtractor(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits,

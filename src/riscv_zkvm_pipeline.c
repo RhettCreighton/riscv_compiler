@@ -221,8 +221,8 @@ int zkvm_stage_generate_circuit(zkvm_pipeline_t* pipeline) {
     printf("✓ Generated circuit file: %s\n", pipeline->circuit_filename);
     printf("  File size: %.1f KB\n", st.st_size / 1024.0);
     printf("  Total gates: %zu\n", pipeline->total_gates);
-    printf("  Circuit inputs: %u\n", pipeline->compiler->circuit->num_inputs);
-    printf("  Circuit outputs: %u\n", pipeline->compiler->circuit->num_outputs);
+    printf("  Circuit inputs: %zu\n", pipeline->compiler->circuit->num_inputs);
+    printf("  Circuit outputs: %zu\n", pipeline->compiler->circuit->num_outputs);
     
     pipeline->current_stage = STAGE_CREATE_PROOF;
     return 0;

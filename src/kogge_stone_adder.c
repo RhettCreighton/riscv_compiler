@@ -44,9 +44,9 @@ static void combine_pg_pairs(riscv_circuit_t* circuit,
 }
 
 // Optimized Kogge-Stone adder implementation
-uint32_t build_kogge_stone_adder_optimized(riscv_circuit_t* circuit, 
-                                          uint32_t* a_bits, uint32_t* b_bits, 
-                                          uint32_t* sum_bits, size_t num_bits) {
+uint32_t build_kogge_stone_adder(riscv_circuit_t* circuit, 
+                                uint32_t* a_bits, uint32_t* b_bits, 
+                                uint32_t* sum_bits, size_t num_bits) {
     // Allocate arrays for propagate and generate signals
     uint32_t** p = malloc(6 * sizeof(uint32_t*));  // Max 6 levels for 32-bit
     uint32_t** g = malloc(6 * sizeof(uint32_t*));
@@ -234,7 +234,7 @@ void benchmark_adders(void) {
     
     // Test full Kogge-Stone adder
     gates_before = compiler->circuit->num_gates;
-    build_kogge_stone_adder_optimized(compiler->circuit, a, b, sum_kogge, 32);
+    build_kogge_stone_adder(compiler->circuit, a, b, sum_kogge, 32);
     size_t kogge_gates = compiler->circuit->num_gates - gates_before;
     
     // Test sparse Kogge-Stone adder
