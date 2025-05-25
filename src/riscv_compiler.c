@@ -372,11 +372,13 @@ uint32_t build_ripple_carry_adder(riscv_circuit_t* circuit, uint32_t* a_bits, ui
     return carry;  // Return final carry out
 }
 
-// Main adder function - uses sparse Kogge-Stone by default for better gate/depth tradeoff
+// Main adder function - uses ripple-carry for minimal gate count
 uint32_t build_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
                      uint32_t* sum_bits, size_t num_bits) {
-    // Use sparse Kogge-Stone for optimal balance of gates and depth
-    return build_sparse_kogge_stone_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
+    // For zkVM, gate count matters more than circuit depth
+    // Ripple-carry: 224 gates (7 per bit)
+    // Sparse Kogge-Stone: 396 gates (12.4 per bit)
+    return build_ripple_carry_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
 }
 
 uint32_t build_subtractor(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits,

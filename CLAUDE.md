@@ -490,10 +490,13 @@ for (size_t i = 0; i < total; i += CHUNK_SIZE) {
 
 ### Real Performance
 ```
-ADD: 396 gates (12.4 per bit)
+ADD: 224 gates (7.0 per bit) - Using ripple-carry
 XOR: 32 gates (1 per bit) 
 AND: 32 gates (1 per bit)
 ```
+
+Note: Sparse Kogge-Stone uses 396 gates but has better parallelism.
+For zkVM, gate count matters more than depth, so ripple-carry is default.
 
 ### Next Steps for You
 1. **Fix the benchmarks** - They compile but segfault when run
