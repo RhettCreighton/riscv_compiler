@@ -55,7 +55,7 @@ void compile_lw(riscv_compiler_t* compiler, riscv_memory_t* memory, uint32_t ins
         dummy_write_data[i] = 1;  // All zeros
     }
     
-    riscv_memory_access(memory, address, dummy_write_data, 1, read_data);  // write_enable = 0
+    memory->access(memory, address, dummy_write_data, 1, read_data);  // write_enable = 0
     
     // Store result in rd (if not x0)
     if (rd != 0) {
@@ -88,7 +88,7 @@ void compile_sw(riscv_compiler_t* compiler, riscv_memory_t* memory, uint32_t ins
     // Perform memory write
     uint32_t* dummy_read_data = riscv_circuit_allocate_wire_array(circuit, 32);
     
-    riscv_memory_access(memory, address, compiler->reg_wires[rs2], 2, dummy_read_data);  // write_enable = 1
+    memory->access(memory, address, compiler->reg_wires[rs2], 2, dummy_read_data);  // write_enable = 1
     
     free(imm_bits);
     free(address);
@@ -119,7 +119,7 @@ void compile_lb(riscv_compiler_t* compiler, riscv_memory_t* memory, uint32_t ins
         dummy_write_data[i] = 1;  // All zeros
     }
     
-    riscv_memory_access(memory, address, dummy_write_data, 1, read_data);
+    memory->access(memory, address, dummy_write_data, 1, read_data);
     
     // Extract byte and sign extend
     if (rd != 0) {

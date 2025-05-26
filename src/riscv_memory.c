@@ -42,6 +42,7 @@ riscv_memory_t* riscv_memory_create(riscv_circuit_t* circuit) {
     if (!memory) return NULL;
     
     memory->circuit = circuit;
+    memory->access = riscv_memory_access;  // Set function pointer
     
     // Allocate Merkle root wires (256 bits for SHA3-256)
     memory->merkle_root_wires = riscv_circuit_allocate_wire_array(circuit, 256);

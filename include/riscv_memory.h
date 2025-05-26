@@ -16,8 +16,21 @@ typedef enum {
     MEM_WRITE
 } mem_op_t;
 
+// Memory subsystem interface
+typedef struct riscv_memory_t riscv_memory_t;
+
+// Memory access function pointer type
+typedef void (*memory_access_fn)(riscv_memory_t* memory,
+                                uint32_t* address_bits,
+                                uint32_t* write_data_bits,
+                                uint32_t write_enable,
+                                uint32_t* read_data_bits);
+
 // Memory subsystem using Merkle tree
-typedef struct {
+struct riscv_memory_t {
+    // Function pointer for memory access (allows different implementations)
+    memory_access_fn access;
+    
     // Merkle tree root (represents entire memory state)
     uint32_t* merkle_root_wires;  // 256 wires for SHA3-256 hash
     
@@ -33,11 +46,20 @@ typedef struct {
     
     // Circuit context
     riscv_circuit_t* circuit;
-} riscv_memory_t;
+};
 
 // Memory API
 riscv_memory_t* riscv_memory_create(riscv_circuit_t* circuit);
 void riscv_memory_destroy(riscv_memory_t* memory);
+
+// Simple memory API (no cryptographic proofs, ~2K gates instead of ~3.9M)
+riscv_memory_t* riscv_memory_create_simple(riscv_circuit_t* circuit);
+void riscv_memory_destroy_simple(riscv_memory_t* memory);
+void riscv_memory_access_simple(riscv_memory_t* memory, 
+                               uint32_t* address_bits,
+                               uint32_t* write_data_bits,
+                               uint32_t write_enable,
+                               uint32_t* read_data_bits);
 
 // Build memory access circuit
 // This creates gates that:

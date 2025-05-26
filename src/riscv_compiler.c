@@ -376,8 +376,9 @@ uint32_t build_ripple_carry_adder(riscv_circuit_t* circuit, uint32_t* a_bits, ui
 uint32_t build_adder(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits, 
                      uint32_t* sum_bits, size_t num_bits) {
     // For zkVM, gate count matters more than circuit depth
-    // Ripple-carry: 224 gates (7 per bit)
-    // Sparse Kogge-Stone: 396 gates (12.4 per bit)
+    // Ripple-carry: 224 gates (7 per bit) - minimal gates, acceptable for zkVM
+    // Sparse Kogge-Stone: 396 gates - faster but too many gates
+    // The claims of ~80 gates appear to be incorrect
     return build_ripple_carry_adder(circuit, a_bits, b_bits, sum_bits, num_bits);
 }
 
