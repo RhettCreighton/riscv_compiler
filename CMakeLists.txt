@@ -83,6 +83,16 @@ if(RISCV_COMPILER_BUILD_EXAMPLES)
         add_executable(memory_ultra_comparison examples/memory_ultra_comparison.c)
         target_link_libraries(memory_ultra_comparison riscv_compiler)
     endif()
+    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/tutorial_complete.c")
+        add_executable(tutorial_complete examples/tutorial_complete.c)
+        target_link_libraries(tutorial_complete riscv_compiler)
+    endif()
+    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/getting_started.c")
+        add_executable(getting_started examples/getting_started.c)
+        target_link_libraries(getting_started riscv_compiler)
+    endif()
 endif()
 
 # Tests
@@ -150,6 +160,70 @@ if(RISCV_COMPILER_BUILD_TESTS)
     add_executable(test_booth src/booth_multiplier.c)
     target_link_libraries(test_booth riscv_compiler)
     target_compile_definitions(test_booth PRIVATE TEST_BOOTH)
+    
+    # Formal verification tests
+    add_executable(test_reference_impl 
+        tests/test_reference_impl.c
+        src/reference_implementations.c
+        src/reference_branches.c
+        src/reference_memory.c
+    )
+    target_link_libraries(test_reference_impl riscv_compiler)
+    
+    # MiniSAT integration
+    add_library(minisat STATIC
+        src/minisat/solver.c
+    )
+    target_include_directories(minisat PRIVATE src/minisat)
+    
+    
+    
+    # MiniSAT basic integration test
+    add_executable(test_minisat_integration
+        src/minisat_integration_test.c
+    )
+    target_link_libraries(test_minisat_integration minisat m)
+    
+    
+    # Simple verification API test
+    add_executable(test_verification_api
+        src/test_verification_api.c
+    )
+    target_link_libraries(test_verification_api riscv_compiler)
+    
+    # SAT-based ADD equivalence test
+    add_executable(test_add_equivalence
+        src/test_add_equivalence.c
+    )
+    target_link_libraries(test_add_equivalence riscv_compiler minisat m)
+    
+    
+    # Systematic instruction verification
+    add_executable(test_instruction_verification
+        src/test_instruction_verification.c
+    )
+    target_link_libraries(test_instruction_verification riscv_compiler minisat m)
+    
+    # SHA3 reference implementation test
+    add_executable(test_sha3_reference
+        src/sha3_reference.c
+    )
+    target_compile_definitions(test_sha3_reference PRIVATE TEST_SHA3_REFERENCE)
+    
+    # SHA3 RISC-V implementation test
+    add_executable(test_sha3_riscv
+        examples/sha3_riscv.c
+    )
+    target_compile_definitions(test_sha3_riscv PRIVATE TEST_SHA3_RISCV)
+    
+    
+    # Simple SHA3 test
+    add_executable(test_sha3_simple
+        src/sha3_simple_test.c
+        src/sha3_reference.c
+        tests/riscv_emulator.c
+    )
+    target_link_libraries(test_sha3_simple riscv_compiler)
 endif()
 
 # Install rules

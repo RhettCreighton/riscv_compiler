@@ -24,10 +24,16 @@
 
 riscv_compiler_t* riscv_compiler_create(void) {
     riscv_compiler_t* compiler = calloc(1, sizeof(riscv_compiler_t));
-    if (!compiler) return NULL;
+    if (!compiler) {
+        fprintf(stderr, "❌ ERROR: Failed to allocate memory for compiler\n");
+        fprintf(stderr, "System may be low on memory. Try freeing resources.\n");
+        return NULL;
+    }
     
     compiler->circuit = calloc(1, sizeof(riscv_circuit_t));
     if (!compiler->circuit) {
+        fprintf(stderr, "❌ ERROR: Failed to allocate memory for circuit\n");
+        fprintf(stderr, "Try reducing program size or increasing available memory.\n");
         free(compiler);
         return NULL;
     }
@@ -534,12 +540,37 @@ static void compile_or(riscv_compiler_t* compiler, uint32_t rd, uint32_t rs1, ui
 }
 
 int riscv_compile_instruction(riscv_compiler_t* compiler, uint32_t instruction) {
+    // Input validation
+    if (!compiler) {
+        fprintf(stderr, "❌ ERROR: NULL compiler instance\n");
+        return -1;
+    }
+    
+    if (!compiler->circuit) {
+        fprintf(stderr, "❌ ERROR: Compiler has no circuit instance\n");
+        return -1;
+    }
+    
+    // Check for circuit capacity limits
+    if (compiler->circuit->num_gates > 50000000) {  // 50M gate safety limit
+        fprintf(stderr, "⚠️ WARNING: Circuit approaching size limits (%zu gates)\n", 
+                compiler->circuit->num_gates);
+        fprintf(stderr, "Consider optimizing or splitting your program\n");
+    }
+    
     uint32_t opcode = GET_OPCODE(instruction);
     uint32_t rd = GET_RD(instruction);
     uint32_t funct3 = GET_FUNCT3(instruction);
     uint32_t rs1 = GET_RS1(instruction);
     uint32_t rs2 = GET_RS2(instruction);
     uint32_t funct7 = GET_FUNCT7(instruction);
+    
+    // Validate register indices
+    if (rd >= 32 || rs1 >= 32 || rs2 >= 32) {
+        fprintf(stderr, "❌ ERROR: Invalid register index in instruction 0x%08X\n", instruction);
+        fprintf(stderr, "   rd=%u, rs1=%u, rs2=%u (must be 0-31)\n", rd, rs1, rs2);
+        return -1;
+    }
     
     // Try shift instructions first
     if (compile_shift_instruction(compiler, instruction) == 0) {
@@ -615,9 +646,111 @@ int riscv_compile_instruction(riscv_compiler_t* compiler, uint32_t instruction) 
             
         // Branches, jumps, memory ops are handled above
         default:
-            fprintf(stderr, "Unsupported opcode: 0x%x\n", opcode);
+            fprintf(stderr, "❌ ERROR: Unsupported instruction\n");
+            fprintf(stderr, "   Instruction: 0x%08X\n", instruction);
+            fprintf(stderr, "   Opcode: 0x%02X\n", opcode);
+            fprintf(stderr, "   \n");
+            fprintf(stderr, "Supported instruction types:\n");
+            fprintf(stderr, "   • Arithmetic: ADD, SUB, XOR, AND, OR, ADDI\n");
+            fprintf(stderr, "   • Shifts: SLL, SRL, SRA, SLLI, SRLI, SRAI\n");
+            fprintf(stderr, "   • Branches: BEQ, BNE, BLT, BGE, BLTU, BGEU\n");
+            fprintf(stderr, "   • Jumps: JAL, JALR\n");
+            fprintf(stderr, "   • Memory: LW, SW, LB, LBU, SB, LH, LHU, SH\n");
+            fprintf(stderr, "   • Upper Imm: LUI, AUIPC\n");
+            fprintf(stderr, "   • Multiply: MUL, MULH, MULHU, MULHSU\n");
+            fprintf(stderr, "   • Divide: DIV, DIVU, REM, REMU\n");
+            fprintf(stderr, "   • System: ECALL, EBREAK\n");
             return -1;
     }
+    
+    return 0;
+}
+
+// Comprehensive compiler validation
+int riscv_compiler_validate(riscv_compiler_t* compiler) {
+    if (!compiler) {
+        fprintf(stderr, "❌ VALIDATION ERROR: NULL compiler instance\n");
+        return -1;
+    }
+    
+    if (!compiler->circuit) {
+        fprintf(stderr, "❌ VALIDATION ERROR: Compiler has no circuit\n");
+        return -2;
+    }
+    
+    // Check circuit state
+    if (compiler->circuit->num_gates > compiler->circuit->capacity) {
+        fprintf(stderr, "❌ VALIDATION ERROR: Gate count exceeds capacity\n");
+        fprintf(stderr, "   Gates: %zu, Capacity: %zu\n", 
+                compiler->circuit->num_gates, compiler->circuit->capacity);
+        return -3;
+    }
+    
+    if (compiler->circuit->next_wire_id < compiler->circuit->num_inputs) {
+        fprintf(stderr, "❌ VALIDATION ERROR: Wire allocation corrupted\n");
+        fprintf(stderr, "   Next wire: %u, Input bits: %zu\n",
+                compiler->circuit->next_wire_id, compiler->circuit->num_inputs);
+        return -4;
+    }
+    
+    // Check memory limits
+    if (compiler->circuit->num_inputs > MAX_INPUT_BITS) {
+        fprintf(stderr, "❌ VALIDATION ERROR: Input size exceeds limits\n");
+        fprintf(stderr, "   Input bits: %zu, Limit: %d\n",
+                compiler->circuit->num_inputs, MAX_INPUT_BITS);
+        return -5;
+    }
+    
+    if (compiler->circuit->num_outputs > MAX_OUTPUT_BITS) {
+        fprintf(stderr, "❌ VALIDATION ERROR: Output size exceeds limits\n");
+        fprintf(stderr, "   Output bits: %zu, Limit: %d\n",
+                compiler->circuit->num_outputs, MAX_OUTPUT_BITS);
+        return -6;
+    }
+    
+    // Check for reasonable gate density
+    if (compiler->circuit->num_gates > 0) {
+        double bits_per_gate = (double)(compiler->circuit->num_inputs + compiler->circuit->num_outputs) 
+                              / compiler->circuit->num_gates;
+        if (bits_per_gate > 1000) {
+            fprintf(stderr, "⚠️ VALIDATION WARNING: Very low gate density (%.1f bits/gate)\n", bits_per_gate);
+            fprintf(stderr, "   This might indicate an issue with gate generation\n");
+        }
+    }
+    
+    // Validate gate array consistency
+    if (compiler->circuit->gates && compiler->circuit->capacity > 0) {
+        for (size_t i = 0; i < compiler->circuit->num_gates; i++) {
+            gate_t* gate = &compiler->circuit->gates[i];
+            
+            // Check wire indices are reasonable
+            if (gate->output >= compiler->circuit->next_wire_id) {
+                fprintf(stderr, "❌ VALIDATION ERROR: Gate %zu has invalid output wire %u\n",
+                        i, gate->output);
+                return -7;
+            }
+            
+            if (gate->left_input >= compiler->circuit->next_wire_id || 
+                gate->right_input >= compiler->circuit->next_wire_id) {
+                fprintf(stderr, "❌ VALIDATION ERROR: Gate %zu has invalid input wires (%u, %u)\n",
+                        i, gate->left_input, gate->right_input);
+                return -8;
+            }
+            
+            // Check gate type is valid
+            if (gate->type != GATE_AND && gate->type != GATE_XOR) {
+                fprintf(stderr, "❌ VALIDATION ERROR: Gate %zu has invalid type %d\n",
+                        i, gate->type);
+                return -9;
+            }
+        }
+    }
+    
+    fprintf(stderr, "✅ VALIDATION PASSED: Compiler is in good state\n");
+    fprintf(stderr, "   Gates: %zu/%zu\n", compiler->circuit->num_gates, compiler->circuit->capacity);
+    fprintf(stderr, "   Wires: %u\n", compiler->circuit->next_wire_id);
+    fprintf(stderr, "   Input/Output: %zu/%zu bits\n", 
+            compiler->circuit->num_inputs, compiler->circuit->num_outputs);
     
     return 0;
 }
@@ -662,4 +795,47 @@ int riscv_circuit_to_file(const riscv_circuit_t* circuit, const char* filename) 
     
     fclose(f);
     return 0;
+}
+
+// Verification API implementations
+size_t riscv_circuit_get_num_gates(const riscv_circuit_t* circuit) {
+    if (!circuit) return 0;
+    return circuit->num_gates;
+}
+
+const gate_t* riscv_circuit_get_gate(const riscv_circuit_t* circuit, size_t index) {
+    if (!circuit || index >= circuit->num_gates) return NULL;
+    return &circuit->gates[index];
+}
+
+const gate_t* riscv_circuit_get_gates(const riscv_circuit_t* circuit) {
+    if (!circuit) return NULL;
+    return circuit->gates;
+}
+
+size_t riscv_circuit_get_num_inputs(const riscv_circuit_t* circuit) {
+    if (!circuit) return 0;
+    return circuit->num_inputs;
+}
+
+size_t riscv_circuit_get_num_outputs(const riscv_circuit_t* circuit) {
+    if (!circuit) return 0;
+    return circuit->num_outputs;
+}
+
+uint32_t riscv_circuit_get_next_wire(const riscv_circuit_t* circuit) {
+    if (!circuit) return 0;
+    return circuit->next_wire_id;
+}
+
+uint32_t riscv_compiler_get_register_wire(const riscv_compiler_t* compiler, int reg, int bit) {
+    if (!compiler || reg < 0 || reg >= 32 || bit < 0 || bit >= 32) return 0;
+    if (!compiler->reg_wires[reg]) return 0;
+    return compiler->reg_wires[reg][bit];
+}
+
+uint32_t riscv_compiler_get_pc_wire(const riscv_compiler_t* compiler, int bit) {
+    if (!compiler || bit < 0 || bit >= 32) return 0;
+    if (!compiler->pc_wires) return 0;
+    return compiler->pc_wires[bit];
 }

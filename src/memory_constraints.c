@@ -31,8 +31,8 @@ memory_analysis_t* analyze_memory_requirements(const riscv_program_t* program) {
     analysis->data_start = program->data_start;
     analysis->data_end = analysis->data_start + analysis->data_size;
     
-    // BSS (uninitialized data) - would come from ELF
-    analysis->bss_size = 0;  // TODO: Extract from ELF
+    // BSS (uninitialized data) - not currently extracted from ELF
+    analysis->bss_size = 0;
     
     // Estimate heap and stack requirements
     // These are heuristics - real values depend on program behavior

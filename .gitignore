@@ -1,53 +1,80 @@
-# Build artifacts
+# Build directories
 build/
+cmake-build-*/
+out/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+Testing/
+
+# Compiled binaries
 *.o
 *.a
 *.so
-*.dylib
+*.dll
+*.exe
+*.out
 
-# Executables
-test_*
-benchmark_*
-*_demo
-riscv_zkvm_pipeline
-create_test_elf
+# Circuit output files
+*.circuit
+*.gate
+*.zkvm
 
-# IDE and editor files
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Test outputs
+test_results/
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Documentation build
+docs/_build/
+docs/html/
+docs/latex/
 
 # Temporary files
 *.tmp
 *.temp
 *.log
+*.bak
 
-# CMake generated files
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-Makefile
-*.cmake
-!CMakeLists.txt
-!cmake/*.cmake.in
+# Core dumps
+core
+core.*
+vgcore.*
 
-# Circuit output files
-*.circuit
-*.bfp
-*.txt
-riscv_circuit.txt
+# Python cache (for any helper scripts)
+__pycache__/
+*.pyc
+*.pyo
 
-# Test artifacts
-*.elf
-*.dump
+# Editor backup files
+*.backup
+*.save
+*.orig
+
+# Generated files
+compile_commands.json
+.cache/
+
+# Local configuration
+.env
+config.local

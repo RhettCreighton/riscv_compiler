@@ -76,8 +76,8 @@ static int compile_auipc(riscv_compiler_t* compiler, uint32_t rd, uint32_t immed
     // Create upper immediate value
     create_upper_immediate_value(compiler->circuit, immediate, imm_wires);
     
-    // Add PC + immediate using optimized adder
-    build_kogge_stone_adder(compiler->circuit, pc_wires, imm_wires, rd_wires, 32);
+    // Add PC + immediate using gate-optimized ripple-carry adder
+    build_ripple_carry_adder(compiler->circuit, pc_wires, imm_wires, rd_wires, 32);
     
     // In a full implementation, this would update the register file
     // For circuit generation, we compute rd = PC + (imm << 12)
