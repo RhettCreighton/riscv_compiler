@@ -12,7 +12,7 @@
 cd build && cmake .. && make -j$(nproc)
 
 # Test  
-./run_all_tests.sh
+../scripts/run_all_tests.sh
 
 # Try examples
 ./getting_started
@@ -65,6 +65,27 @@ cd build
 ```
 
 Uses SAT solving to mathematically prove circuits correctly implement RISC-V semantics.
+
+## Project Structure
+
+```
+riscv_compiler/
+├── README.md              # This file
+├── CMakeLists.txt         # Build configuration
+├── src/                   # Source code
+├── include/               # Header files
+├── tests/                 # Test suite
+├── examples/              # Example programs
+├── docs/                  # Documentation
+├── scripts/               # Build and utility scripts
+└── build/                 # Build artifacts (generated)
+```
+
+## Documentation
+
+- **[docs/CLAUDE.md](docs/CLAUDE.md)** - Technical implementation details
+- **[docs/OPTIMIZATION_SUMMARY.md](docs/OPTIMIZATION_SUMMARY.md)** - Performance optimizations
+- **[docs/VERIFICATION_SUMMARY.md](docs/VERIFICATION_SUMMARY.md)** - Formal verification details
 
 ## License
 
