@@ -282,6 +282,10 @@ uint32_t get_pc_wire(int bit) {
 }
 
 uint32_t get_register_wire(int reg, int bit) {
+    // RISC-V x0 register is hardwired to zero
+    if (reg == 0) {
+        return CONSTANT_0_WIRE;  // Always return wire 0 (constant false)
+    }
     return REGS_START_BIT + (reg * 32) + bit;
 }
 

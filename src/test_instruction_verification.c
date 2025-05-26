@@ -135,7 +135,8 @@ bool verify_instruction(test_case_t* test) {
         constrain_wire(s, 0, false);
         constrain_wire(s, 1, true);
         
-        // Constrain x0 = 0 (RISC-V requirement)
+        // Constrain x0 = 0 (RISC-V requirement) - even though compiler fix handles this,
+        // we keep the explicit constraint for verification robustness
         for (int bit = 0; bit < 32; bit++) {
             constrain_wire(s, riscv_compiler_get_register_wire(compiler, 0, bit), false);
         }
