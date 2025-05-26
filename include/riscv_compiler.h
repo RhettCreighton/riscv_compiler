@@ -166,6 +166,9 @@ uint32_t build_comparator(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* 
                           size_t num_bits, bool is_signed);
 uint32_t build_shifter(riscv_circuit_t* circuit, uint32_t* value_bits, uint32_t* shift_bits,
                        uint32_t* result_bits, size_t num_bits, bool is_left, bool is_arithmetic);
+uint32_t build_shifter_optimized(riscv_circuit_t* circuit, uint32_t* value_bits, uint32_t* shift_bits,
+                                uint32_t* result_bits, size_t num_bits, bool is_left, bool is_arithmetic);
+int compile_shift_instruction_optimized(riscv_compiler_t* compiler, uint32_t instruction);
 uint32_t* build_multiplier(riscv_circuit_t* circuit, uint32_t* a_bits, uint32_t* b_bits,
                            size_t num_bits);
 
@@ -197,6 +200,7 @@ int riscv_circuit_to_file(const riscv_circuit_t* circuit, const char* filename);
 
 // Additional instruction compilers
 int compile_branch_instruction(riscv_compiler_t* compiler, uint32_t instruction);
+int compile_branch_instruction_optimized(riscv_compiler_t* compiler, uint32_t instruction);
 int compile_memory_instruction(riscv_compiler_t* compiler, struct riscv_memory_t* memory, uint32_t instruction);
 int compile_shift_instruction(riscv_compiler_t* compiler, uint32_t instruction);
 int compile_multiply_instruction(riscv_compiler_t* compiler, uint32_t instruction);
@@ -236,6 +240,16 @@ void build_booth_multiplier_optimized(riscv_circuit_t* circuit,
 // Gate caching and deduplication
 void deduplicate_gates(riscv_circuit_t* circuit);
 void gate_cache_print_stats(void);
+
+// Advanced gate deduplication functions
+void gate_dedup_init(void);
+void gate_dedup_cleanup(void);
+uint32_t gate_dedup_add(riscv_circuit_t* circuit, uint32_t left, uint32_t right, gate_type_t type);
+void gate_dedup_report(void);
+uint32_t riscv_circuit_add_gate_dedup(riscv_circuit_t* circuit, uint32_t left, uint32_t right, uint32_t output, gate_type_t type);
+void build_adder_dedup(riscv_circuit_t* circuit, uint32_t* a, uint32_t* b, uint32_t* sum, size_t bits);
+void riscv_compiler_enable_deduplication(riscv_compiler_t* compiler);
+void riscv_compiler_finalize_deduplication(riscv_compiler_t* compiler);
 
 // Memory constraint management
 typedef struct {

@@ -61,6 +61,15 @@ void riscv_memory_access_simple(riscv_memory_t* memory,
                                uint32_t write_enable,
                                uint32_t* read_data_bits);
 
+// Ultra-simple memory API (8 words only, ~200 gates instead of ~101K)
+riscv_memory_t* riscv_memory_create_ultra_simple(riscv_circuit_t* circuit);
+void riscv_memory_destroy_ultra_simple(riscv_memory_t* memory);
+void riscv_memory_access_ultra_simple(riscv_memory_t* memory,
+                                     uint32_t* address_bits,
+                                     uint32_t* write_data_bits,
+                                     uint32_t write_enable,
+                                     uint32_t* read_data_bits);
+
 // Build memory access circuit
 // This creates gates that:
 // 1. Verify Merkle proof for the accessed address

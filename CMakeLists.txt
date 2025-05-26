@@ -25,6 +25,10 @@ set(SOURCES
     src/riscv_loadstore.c
     src/riscv_memory.c
     src/riscv_memory_simple.c
+    src/riscv_memory_ultra_simple.c
+    src/gate_deduplication.c
+    src/optimized_shifts.c
+    src/optimized_branches.c
     src/riscv_elf_loader.c
     src/circuit_format_converter.c
     src/riscv_zkvm_pipeline.c
@@ -73,6 +77,11 @@ if(RISCV_COMPILER_BUILD_EXAMPLES)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/memory_comparison.c")
         add_executable(memory_comparison examples/memory_comparison.c)
         target_link_libraries(memory_comparison riscv_compiler)
+    endif()
+    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/memory_ultra_comparison.c")
+        add_executable(memory_ultra_comparison examples/memory_ultra_comparison.c)
+        target_link_libraries(memory_ultra_comparison riscv_compiler)
     endif()
 endif()
 
