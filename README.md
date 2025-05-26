@@ -43,8 +43,10 @@ cmake .. && make -j$(nproc)
 # Try the complete tutorial
 ./tutorial_complete
 
-# Compile a Fibonacci program
-./fibonacci_riscv_demo
+# Test formal verification (NEW!)
+./test_add_equivalence        # Verify ADD instruction
+./test_instruction_verification  # Verify multiple instructions
+./test_verification_api       # Test verification API
 
 # Run comprehensive tests
 cd .. && ./run_all_tests.sh
