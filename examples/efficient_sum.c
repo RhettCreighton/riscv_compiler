@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 /*
  * efficient_sum.c - Example of writing efficient code for circuits
  * 

@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 /*
  * zkvm_sha256.c - Example of efficient SHA-256 for circuits
  * 

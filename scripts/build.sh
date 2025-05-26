@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
 
 # Build script for RISC-V zkVM Compiler
 # This script sets up and builds the complete compiler with all optimizations

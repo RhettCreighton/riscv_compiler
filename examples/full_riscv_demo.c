@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 #include "riscv_compiler.h"
 #include "riscv_memory.h"
 #include <stdio.h>

@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 /**
  * @file tutorial_complete.c
  * @brief Complete RISC-V Compiler Tutorial - From Beginner to Advanced

@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 // Create a minimal ELF file for testing
 #include <stdio.h>
 #include <stdlib.h>

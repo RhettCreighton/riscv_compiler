@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 #define _GNU_SOURCE  // for strdup
 #include "riscv_elf_loader.h"
 #include <stdio.h>

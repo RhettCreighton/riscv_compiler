@@ -1,3 +1,8 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
+
 # 🧠 Amnesia Handoff: Critical Information for Future Claude
 
 ## 🚨 URGENT: Read This First

@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 /**************************************************************************************************
 MiniSat -- Copyright (c) 2005, Niklas Sorensson
 http://www.cs.chalmers.se/Cs/Research/FormalMethods/MiniSat/

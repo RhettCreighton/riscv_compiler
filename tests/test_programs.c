@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 #include "test_programs.h"
 
 // Simple arithmetic: compute a + b, store in x3, then x3 - x1, store in x4

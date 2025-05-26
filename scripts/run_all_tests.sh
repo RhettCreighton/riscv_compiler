@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
 
 # Run all RISC-V compiler tests
 echo "Running RISC-V Compiler Test Suite"

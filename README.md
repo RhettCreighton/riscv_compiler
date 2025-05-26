@@ -89,4 +89,6 @@ riscv_compiler/
 
 ## License
 
-[Your license here]
+Copyright 2025 Rhett Creighton
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

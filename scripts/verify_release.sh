@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
 # verify_release.sh - Final verification before pushing to git
 
 set -e  # Exit on any error

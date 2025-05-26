@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
 # compile_to_circuit.sh - Compile C or RISC-V to gate circuits
 
 set -e

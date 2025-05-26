@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2025 Rhett Creighton
+# SPDX-License-Identifier: Apache-2.0
+
 
 # Test script for RISC-V zkVM Compiler
 # Runs comprehensive validation of all components

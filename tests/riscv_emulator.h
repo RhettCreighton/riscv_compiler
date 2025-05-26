@@ -1,3 +1,8 @@
+/* SPDX-FileCopyrightText: 2025 Rhett Creighton
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 #ifndef RISCV_EMULATOR_H
 #define RISCV_EMULATOR_H
 
