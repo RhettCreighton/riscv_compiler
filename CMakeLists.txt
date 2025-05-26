@@ -204,6 +204,17 @@ if(RISCV_COMPILER_BUILD_TESTS)
     )
     target_link_libraries(test_instruction_verification riscv_compiler minisat m)
     
+    # zkVM examples (C to Circuit)
+    add_executable(zkvm_sha256_example
+        examples/zkvm_sha256.c
+    )
+    target_link_libraries(zkvm_sha256_example riscv_compiler)
+    
+    add_executable(efficient_sum_example
+        examples/efficient_sum.c
+    )
+    target_link_libraries(efficient_sum_example riscv_compiler)
+    
     # SHA3 reference implementation test
     add_executable(test_sha3_reference
         src/sha3_reference.c
