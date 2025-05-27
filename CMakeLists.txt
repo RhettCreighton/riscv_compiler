@@ -238,6 +238,42 @@ if(RISCV_COMPILER_BUILD_TESTS)
         tests/riscv_emulator.c
     )
     target_link_libraries(test_sha3_simple riscv_compiler)
+    
+    # Bitcoin block verification test
+    add_executable(test_bitcoin_verify
+        examples/test_bitcoin_verify.c
+    )
+    target_link_libraries(test_bitcoin_verify riscv_compiler)
+    
+    # Compilation paths comparison
+    add_executable(compare_compilation_paths
+        examples/compare_compilation_paths.c
+    )
+    target_link_libraries(compare_compilation_paths riscv_compiler)
+    
+    # Dual path demonstration with measurements
+    add_executable(dual_path_demonstration
+        examples/dual_path_demonstration.c
+    )
+    target_link_libraries(dual_path_demonstration riscv_compiler)
+    
+    # Dual path equivalence proof
+    add_executable(dual_path_equivalence_proof
+        examples/dual_path_equivalence_proof.c
+    )
+    target_link_libraries(dual_path_equivalence_proof riscv_compiler minisat m)
+    
+    # Complete equivalence prover
+    add_executable(complete_equivalence_prover
+        examples/complete_equivalence_prover.c
+    )
+    target_link_libraries(complete_equivalence_prover riscv_compiler minisat m)
+    
+    # Proof of code binding
+    add_executable(proof_of_code_binding
+        examples/proof_of_code_binding.c
+    )
+    target_link_libraries(proof_of_code_binding riscv_compiler)
 endif()
 
 # Install rules
